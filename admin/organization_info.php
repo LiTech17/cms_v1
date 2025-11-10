@@ -1,7 +1,7 @@
 <?php
 require_once "../config/database.php";
 require_once "../core/auth.php";
-checkLogin();
+checkAdminLogin();
 
 // Check if table exists, if not create it
 try {

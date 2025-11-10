@@ -1,68 +1,155 @@
 <?php
-// Assuming this file is located at /admin/login.php and database.php is at /config/database.php
+// admin/login.php
+
 require_once "../config/database.php"; 
-session_start();
+require_once "../core/auth.php"; // Include the updated auth file for setLoginSession()
+
+// --- SECURITY CONSTANTS ---
+const MAX_ATTEMPTS = 5;       // Max failed attempts allowed
+const LOCKOUT_TIME = 15;      // Time window in minutes for checking attempts
+const COOLDOWN_MINUTES = 30;  // Cooldown period in minutes if MAX_ATTEMPTS is reached
+const CLEANUP_HOURS = 2;      // How old records must be before cleanup
+// --------------------------
 
 // --- DEBUG FLAG (Set to true to enable logging) ---
 $debug_mode = true;
 // ----------------------------------------------------
 
+$ip_address = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+
+// Function to check and return the number of failed attempts
+function getFailedAttempts($pdo, $ip_address) {
+    $lockout_time = LOCKOUT_TIME;
+    
+    // Find failed attempts in the last LOCKOUT_TIME minutes
+    $stmt = $pdo->prepare("
+        SELECT COUNT(id) AS count 
+        FROM login_attempts 
+        WHERE ip_address = ? 
+        AND attempt_timestamp > DATE_SUB(NOW(), INTERVAL $lockout_time MINUTE)
+    ");
+    $stmt->execute([$ip_address]);
+    return (int)$stmt->fetchColumn();
+}
+
+// Function to record a failed attempt
+function recordFailedAttempt($pdo, $ip_address) {
+    $stmt = $pdo->prepare("INSERT INTO login_attempts (ip_address, attempt_timestamp) VALUES (?, NOW())");
+    $stmt->execute([$ip_address]);
+}
+
+// Function to check for an active lockout
+function isLockedOut($pdo, $ip_address) {
+    return getFailedAttempts($pdo, $ip_address) >= MAX_ATTEMPTS;
+}
+
+/**
+ * NEW: Cleans up very old, unnecessary login attempt records to keep the database fast.
+ */
+function cleanupOldAttempts($pdo) {
+    $cleanup_hours = CLEANUP_HOURS;
+    $stmt = $pdo->prepare("
+        DELETE FROM login_attempts 
+        WHERE attempt_timestamp < DATE_SUB(NOW(), INTERVAL $cleanup_hours HOUR)
+    ");
+    $stmt->execute();
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 1. ALWAYS PERFORM CLEANUP ON POST
+    cleanupOldAttempts($pdo);
+
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? ''; 
+    $error = null;
 
-    if ($debug_mode) {
-        error_log("--- Admin Login Attempt ---");
-        error_log("Input Username: " . $username);
-        // DO NOT log the raw password in production! Only for temporary debugging.
-        error_log("Input Password: " . $password); 
+    if (empty($username) || empty($password)) {
+        $error = "Please enter both username and password.";
     }
 
-    // 1. Prepare and execute the query to fetch the admin record
-    $stmt = $pdo->prepare("SELECT id, username, password FROM admins WHERE username = ?");
-    $stmt->execute([$username]);
-    $admin = $stmt->fetch();
+    // --- BRUTE FORCE PREVENTION CHECK ---
+    if (isLockedOut($pdo, $ip_address)) {
+        // Block further processing and show a generic error
+        $error = "Too many failed login attempts. Please try again after " . COOLDOWN_MINUTES . " minutes.";
+        if ($debug_mode) error_log("Login Blocked: IP {$ip_address} is locked out.");
+    }
+    // ------------------------------------
 
-    if ($debug_mode) {
-        if ($admin) {
-            error_log("User found in DB: " . $admin['username']);
-            error_log("Stored Hash: " . $admin['password']);
+    if (!isset($error)) {
+        if ($debug_mode) {
+            error_log("--- Dual Role Login Attempt ---");
+            error_log("Input Username: " . $username);
+        }
+        
+        $login_successful = false;
+        $user_data = null;
+        $role = null;
+
+        // ------------------------------------------------
+        // 2. ATTEMPT TO LOG IN AS ADMIN
+        // ------------------------------------------------
+        $stmt_admin = $pdo->prepare("SELECT id, username, password FROM admins WHERE username = ?");
+        $stmt_admin->execute([$username]);
+        $admin_data = $stmt_admin->fetch();
+
+        if ($admin_data && password_verify($password, $admin_data['password'])) {
+            $login_successful = true;
+            $user_data = $admin_data;
+            $role = 'admin';
+            $redirect_path = 'index.php';
+            if ($debug_mode) error_log("Login Success: Authenticated as **ADMIN**.");
+        }
+
+        // ------------------------------------------------
+        // 3. ATTEMPT TO LOG IN AS EDITOR (Only if Admin failed)
+        // ------------------------------------------------
+        if (!$login_successful) {
+            if ($debug_mode) error_log("Admin check failed. Checking Editor table...");
+
+            // Note: The editors table uses `password_hash`, so we alias it to `password`
+            $stmt_editor = $pdo->prepare("SELECT id, username, password_hash AS password FROM editors WHERE username = ?");
+            $stmt_editor->execute([$username]);
+            $editor_data = $stmt_editor->fetch();
+
+            if ($editor_data && password_verify($password, $editor_data['password'])) {
+                $login_successful = true;
+                $user_data = $editor_data;
+                $role = 'editor';
+                $redirect_path = '../editor/index.php';
+                if ($debug_mode) error_log("Login Success: Authenticated as **EDITOR**.");
+            }
+        }
+
+        // ------------------------------------------------
+        // 4. FINAL RESULT AND REDIRECT/FAILURE HANDLING
+        // ------------------------------------------------
+        if ($login_successful) {
+            // Success: Set session and redirect
+            setLoginSession($user_data, $role);
+            header("Location: " . $redirect_path);
+            exit();
+            
         } else {
-            error_log("User **NOT** found in DB for username: " . $username);
+            // Failure: Record the attempt and show error
+            recordFailedAttempt($pdo, $ip_address);
+            if ($debug_mode) error_log("Login Failure: Invalid credentials recorded for {$ip_address}.");
+            
+            // Re-check lockout status after recording failure to update error message if necessary
+            if (isLockedOut($pdo, $ip_address)) {
+                $error = "Too many failed login attempts. Please try again after " . COOLDOWN_MINUTES . " minutes.";
+            } else {
+                // Generic error for dictionary attack protection (don't reveal if user exists)
+                $error = "Invalid username or password";
+            }
         }
-    }
-
-    // 2. CRITICAL FIX: Use password_verify() to check the raw password against the stored hash
-    if ($admin && password_verify($password, $admin['password'])) {
         
         if ($debug_mode) {
-            error_log("PASSWORD VERIFICATION: **SUCCESS**");
+            error_log("--- Dual Role Login Finished ---");
         }
-        
-        // Login successful
-        $_SESSION['admin_id'] = $admin['id'];
-        $_SESSION['username'] = $admin['username'];
-        header("Location: index.php");
-        exit();
-    } else {
-        // Login failed
-        
-        if ($debug_mode) {
-            error_log("PASSWORD VERIFICATION: **FAILED**");
-        }
-
-        $error = "Invalid username or password";
-    }
-    
-    if ($debug_mode) {
-        error_log("--- Admin Login Finished ---");
     }
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -72,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Admin Login | NGO CMS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* CSS block remains the same */
         :root {
             --primary: #2b6cb0;
             --primary-dark: #2c5282;

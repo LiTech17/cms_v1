@@ -2,7 +2,7 @@
 require_once "../config/database.php";
 require_once "../core/auth.php";
 require_once "../core/upload.php";
-checkLogin();
+checkAdminLogin();
 
 $stmt = $pdo->query("SELECT * FROM about_page LIMIT 1");
 $about = $stmt->fetch();

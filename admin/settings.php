@@ -2,7 +2,7 @@
 require_once "../config/database.php";
 require_once "../core/auth.php";
 require_once "../core/upload.php";
-checkLogin();
+checkAdminLogin();
 
 // Fetch existing settings
 $stmt = $pdo->query("SELECT * FROM site_settings LIMIT 1");

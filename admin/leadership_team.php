@@ -2,7 +2,7 @@
 require_once "../config/database.php";
 require_once "../core/auth.php";
 require_once "../core/upload.php";
-checkLogin();
+checkAdminLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {

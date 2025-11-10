@@ -1,7 +1,7 @@
 <?php
 require_once "../config/database.php";
 require_once "../core/auth.php";
-checkLogin();
+checkAdminLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['location_name'] ?? '');

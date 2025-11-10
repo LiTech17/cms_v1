@@ -20,7 +20,9 @@ function displayStat($value, $default) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn about our organization, mission, vision, and the impact we're making in communities.">
     <title>About Us | <?= htmlspecialchars($org['name'] ?? 'NGO Name') ?></title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -37,8 +39,27 @@ function displayStat($value, $default) {
             --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --accent: #22d3ee;
+            --accent-light: #06b6d4;
+            --text: #e2e8f0;
+            --text-light: #94a3b8;
+            --bg: #0f172a;
+            --white: #1e293b;
+            --border: #334155;
+            --gradient: linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Base Styles - Mobile First */
         * {
             margin: 0;
             padding: 0;
@@ -46,45 +67,50 @@ function displayStat($value, $default) {
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: var(--text);
             background: var(--bg);
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
+            width: 100%;
             max-width: 1280px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 1rem;
         }
 
-        /* Hero Header */
+        /* Hero Header - Mobile First */
         .hero {
             position: relative;
             background: var(--gradient);
             color: white;
-            padding: 8rem 0 6rem;
+            padding: 4rem 0 3rem;
             overflow: hidden;
+            min-height: 50vh;
+            display: flex;
+            align-items: center;
         }
 
         .hero::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
             background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
             opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
         }
 
         <?php if(!empty($about['hero_image'])): ?>
         .hero {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(6, 182, 212, 0.9) 100%),
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.85) 0%, rgba(6, 182, 212, 0.9) 100%),
                         url('../uploads/<?= htmlspecialchars($about['hero_image']) ?>');
             background-size: cover;
             background-position: center;
+            background-attachment: scroll;
         }
         <?php endif; ?>
 
@@ -93,35 +119,38 @@ function displayStat($value, $default) {
             z-index: 1;
             text-align: center;
             animation: fadeInUp 0.8s ease-out;
+            width: 100%;
         }
 
         .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-size: clamp(1.75rem, 6vw, 4rem);
             font-weight: 800;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             letter-spacing: -0.02em;
+            line-height: 1.1;
         }
 
         .hero-subtitle {
-            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-size: clamp(1rem, 3vw, 1.3rem);
             opacity: 0.95;
             max-width: 700px;
             margin: 0 auto;
-            line-height: 1.7;
+            line-height: 1.6;
+            padding: 0 1rem;
         }
 
-        /* Section Styles */
+        /* Section Styles - Mobile First */
         .section {
-            padding: 5rem 0;
+            padding: 3rem 0;
         }
 
         .section-alt {
-            background: white;
+            background: var(--white);
         }
 
         .section-header {
             text-align: center;
-            margin-bottom: 4rem;
+            margin-bottom: 2.5rem;
             animation: fadeInUp 0.6s ease-out;
         }
 
@@ -131,41 +160,43 @@ function displayStat($value, $default) {
             background: var(--gradient);
             color: white;
             border-radius: 50px;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .section-title {
-            font-size: clamp(2rem, 4vw, 3rem);
+            font-size: clamp(1.75rem, 5vw, 3rem);
             font-weight: 800;
             color: var(--text);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             letter-spacing: -0.02em;
+            line-height: 1.2;
         }
 
         .section-subtitle {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
             color: var(--text-light);
             max-width: 650px;
             margin: 0 auto;
+            padding: 0 1rem;
         }
 
-        /* Mission Cards */
+        /* Mission Cards - Mobile First */
         .mission-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2rem;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
         }
 
         .mission-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
+            background: var(--white);
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
             box-shadow: var(--shadow);
-            transition: all 0.3s ease;
+            transition: var(--transition);
             border: 1px solid var(--border);
             position: relative;
             overflow: hidden;
@@ -181,44 +212,41 @@ function displayStat($value, $default) {
             background: var(--gradient);
             transform: scaleX(0);
             transition: transform 0.3s ease;
+            transform-origin: left;
         }
 
-        .mission-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .mission-card:hover::before {
-            transform: scaleX(1);
+        .mission-card:active {
+            transform: scale(0.98);
         }
 
         .mission-icon {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             background: var(--gradient);
-            border-radius: 16px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             color: white;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
         }
 
         .mission-card h3 {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             color: var(--text);
         }
 
         .mission-card p {
             color: var(--text-light);
             line-height: 1.7;
+            font-size: 0.95rem;
         }
 
-        /* Stats Section */
+        /* Stats Section - Mobile First */
         .stats-section {
             background: var(--gradient);
             color: white;
@@ -229,18 +257,23 @@ function displayStat($value, $default) {
         .stats-section::before {
             content: '';
             position: absolute;
-            width: 500px;
-            height: 500px;
+            width: 300px;
+            height: 300px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 50%;
-            top: -250px;
-            right: -150px;
+            top: -150px;
+            right: -100px;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        [data-theme="dark"] .stats-section::before {
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 3rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem 1rem;
             position: relative;
             z-index: 1;
         }
@@ -251,75 +284,73 @@ function displayStat($value, $default) {
         }
 
         .stat-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
             opacity: 0.9;
         }
 
         .stat-number {
-            font-size: 3rem;
+            font-size: 2rem;
             font-weight: 900;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             letter-spacing: -0.02em;
         }
 
         .stat-label {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             opacity: 0.9;
             font-weight: 500;
         }
 
-        /* Story Section */
+        /* Story Section - Mobile First */
         .story-content {
             max-width: 900px;
             margin: 0 auto;
-            background: white;
-            padding: 3rem;
-            border-radius: 20px;
+            background: var(--white);
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
             box-shadow: var(--shadow);
-            font-size: 1.15rem;
-            line-height: 1.9;
+            font-size: 1rem;
+            line-height: 1.8;
             color: var(--text);
             border-left: 4px solid var(--primary);
         }
 
-        /* Team Grid */
+        /* Team Grid - Mobile First */
         .team-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
         }
 
         .team-card {
-            background: white;
-            border-radius: 20px;
+            background: var(--white);
+            border-radius: 16px;
             box-shadow: var(--shadow);
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: var(--transition);
             border: 1px solid var(--border);
         }
 
-        .team-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
+        .team-card:active {
+            transform: scale(0.98);
         }
 
         .team-image-wrapper {
             position: relative;
             overflow: hidden;
-            height: 280px;
+            padding-top: 100%;
             background: var(--border);
         }
 
         .team-image {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.4s ease;
-        }
-
-        .team-card:hover .team-image {
-            transform: scale(1.05);
         }
 
         .team-content {
@@ -327,7 +358,7 @@ function displayStat($value, $default) {
         }
 
         .team-name {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
             color: var(--text);
@@ -337,12 +368,12 @@ function displayStat($value, $default) {
             color: var(--primary);
             font-weight: 600;
             margin-bottom: 0.5rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .team-qualification {
             color: var(--text-light);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             margin-bottom: 0.75rem;
             font-style: italic;
         }
@@ -353,92 +384,45 @@ function displayStat($value, $default) {
             line-height: 1.6;
         }
 
-        /* Bases Section */
+        /* Bases Section - Mobile First */
         .bases-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2rem;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
         }
 
         .base-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 16px;
             box-shadow: var(--shadow);
             border-left: 4px solid var(--primary);
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
 
-        .base-card:hover {
-            transform: translateX(8px);
-            box-shadow: var(--shadow-lg);
+        .base-card:active {
+            transform: translateX(4px);
         }
 
         .base-card h3 {
             color: var(--primary);
-            font-size: 1.3rem;
+            font-size: 1.15rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
         .base-card h3 i {
-            font-size: 1.1rem;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
         .base-card p {
             color: var(--text-light);
             line-height: 1.7;
-        }
-
-        /* Footer */
-        .footer {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            padding: 4rem 0 2rem;
-        }
-
-        .footer-content {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .footer-content h3 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin: 2rem 0;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .footer-links a:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 0.7;
+            font-size: 0.95rem;
         }
 
         /* Animations */
@@ -453,44 +437,288 @@ function displayStat($value, $default) {
             }
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.05;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.08;
+                transform: scale(1.1);
+            }
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Touch-friendly tap targets */
+        a, button, .mission-card, .team-card, .base-card {
+            -webkit-tap-highlight-color: rgba(37, 99, 235, 0.1);
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* Tablet (481px - 768px) */
+        @media (min-width: 481px) {
             .container {
                 padding: 0 1.5rem;
             }
 
-            .hero {
-                padding: 5rem 0 4rem;
+            .mission-grid,
+            .bases-grid {
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            }
+
+            .team-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2.5rem 2rem;
+            }
+
+            .stat-icon {
+                font-size: 2.5rem;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+
+            .stat-label {
+                font-size: 1rem;
             }
 
             .section {
-                padding: 3rem 0;
+                padding: 4rem 0;
             }
 
             .section-header {
-                margin-bottom: 2.5rem;
+                margin-bottom: 3rem;
             }
 
-            .mission-grid,
-            .stats-grid,
-            .team-grid,
-            .bases-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
+            .mission-card,
+            .base-card {
+                padding: 2rem;
+            }
+
+            .mission-icon {
+                width: 65px;
+                height: 65px;
+                font-size: 1.6rem;
+            }
+        }
+
+        /* Desktop (769px and up) */
+        @media (min-width: 769px) {
+            .container {
+                padding: 0 2rem;
+            }
+
+            .hero {
+                padding: 8rem 0 6rem;
+                min-height: 60vh;
+            }
+
+            <?php if(!empty($about['hero_image'])): ?>
+            .hero {
+                background-attachment: fixed;
+            }
+            <?php endif; ?>
+
+            .section {
+                padding: 5rem 0;
+            }
+
+            .section-header {
+                margin-bottom: 4rem;
+            }
+
+            .section-badge {
+                font-size: 0.875rem;
+                padding: 0.5rem 1.25rem;
+            }
+
+            .mission-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+            }
+
+            .mission-card {
+                padding: 2.5rem;
+            }
+
+            .mission-card:hover {
+                transform: translateY(-8px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .mission-card:hover::before {
+                transform: scaleX(1);
+            }
+
+            .mission-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+            }
+
+            .stats-section::before {
+                width: 500px;
+                height: 500px;
+                top: -250px;
+                right: -150px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 3rem;
+            }
+
+            .stat-icon {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+            }
+
+            .stat-number {
+                font-size: 3rem;
+            }
+
+            .stat-label {
+                font-size: 1.1rem;
             }
 
             .story-content {
-                padding: 2rem 1.5rem;
+                padding: 3rem;
+                font-size: 1.15rem;
+                line-height: 1.9;
             }
 
-            .footer-links {
-                flex-direction: column;
-                gap: 1rem;
+            .team-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 2rem;
+            }
+
+            .team-card:hover {
+                transform: translateY(-8px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .team-card:hover .team-image {
+                transform: scale(1.05);
+            }
+
+            .team-image-wrapper {
+                padding-top: 0;
+                height: 280px;
+            }
+
+            .team-image {
+                position: static;
+            }
+
+            .team-name {
+                font-size: 1.25rem;
+            }
+
+            .team-role {
+                font-size: 0.95rem;
+            }
+
+            .team-qualification {
+                font-size: 0.875rem;
+            }
+
+            .bases-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 2rem;
+            }
+
+            .base-card {
+                padding: 2rem;
+            }
+
+            .base-card:hover {
+                transform: translateX(8px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .base-card h3 {
+                font-size: 1.3rem;
+            }
+
+            .base-card h3 i {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Large Desktop (1024px and up) */
+        @media (min-width: 1024px) {
+            .mission-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Extra Large Desktop (1280px and up) */
+        @media (min-width: 1280px) {
+            .team-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .hero {
+                background: none !important;
+                color: #000 !important;
+                padding: 2rem 0 !important;
+            }
+
+            .mission-card,
+            .base-card,
+            .team-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .stats-section {
+                background: none !important;
+                color: #000 !important;
             }
         }
     </style>
 </head>
 <body>
+    <script>
+        // Dark mode initialization - must run before page renders
+        (function() {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <!-- Hero Header -->
     <header class="hero">
         <div class="container">
@@ -513,54 +741,54 @@ function displayStat($value, $default) {
             </div>
 
             <div class="mission-grid">
-                <div class="mission-card">
+                <article class="mission-card">
                     <div class="mission-icon">
-                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-eye" aria-hidden="true"></i>
                     </div>
                     <h3>Our Vision</h3>
                     <p><?= nl2br(htmlspecialchars($about['vision'] ?? $org['vision'] ?? 'A world where every community thrives with dignity, opportunity, and sustainable development.')) ?></p>
-                </div>
+                </article>
 
-                <div class="mission-card">
+                <article class="mission-card">
                     <div class="mission-icon">
-                        <i class="fas fa-bullseye"></i>
+                        <i class="fas fa-bullseye" aria-hidden="true"></i>
                     </div>
                     <h3>Our Mission</h3>
                     <p><?= nl2br(htmlspecialchars($about['mission'] ?? $org['mission'] ?? 'To empower marginalized communities through education, healthcare, and economic development programs that create lasting positive change.')) ?></p>
-                </div>
+                </article>
 
-                <div class="mission-card">
+                <article class="mission-card">
                     <div class="mission-icon">
-                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-heart" aria-hidden="true"></i>
                     </div>
                     <h3>Our Values</h3>
                     <p><?= nl2br(htmlspecialchars($about['core_values'] ?? $org['core_values'] ?? 'Integrity, Compassion, Empowerment, Sustainability, and Community Partnership guide everything we do.')) ?></p>
-                </div>
+                </article>
             </div>
         </div>
     </section>
 
     <!-- Impact Stats -->
-    <section class="section stats-section">
+    <section class="section stats-section" aria-label="Impact Statistics">
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fas fa-calendar-alt"></i></div>
                     <div class="stat-number"><?= displayStat($about['year_established'], '5+') ?></div>
                     <div class="stat-label">Years of Service</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fas fa-users"></i></div>
                     <div class="stat-number"><?= displayStat($about['lives_impacted'], '1,500+') ?></div>
                     <div class="stat-label">Lives Impacted</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fas fa-map-marker-alt"></i></div>
                     <div class="stat-number"><?= displayStat($about['communities_served'], '12+') ?></div>
                     <div class="stat-label">Communities Served</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-icon"><i class="fas fa-project-diagram"></i></div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fas fa-project-diagram"></i></div>
                     <div class="stat-number"><?= displayStat($about['active_programs'], '8') ?></div>
                     <div class="stat-label">Active Programmes</div>
                 </div>
@@ -578,11 +806,11 @@ function displayStat($value, $default) {
                 <p class="section-subtitle">From humble beginnings to meaningful impact</p>
             </div>
             
-            <div class="story-content">
+            <article class="story-content">
                 <p>
                     <?= nl2br(htmlspecialchars($about['establishment_story'] ?? $org['history'] ?? 'Founded with a vision to make a difference, our organization has grown through dedication and community partnership.')) ?>
                 </p>
-            </div>
+            </article>
         </div>
     </section>
     <?php endif; ?>
@@ -599,10 +827,10 @@ function displayStat($value, $default) {
 
             <div class="bases-grid">
                 <?php foreach($bases as $base): ?>
-                <div class="base-card">
-                    <h3><i class="fas fa-map-pin"></i> <?= htmlspecialchars($base['location_name']) ?></h3>
+                <article class="base-card">
+                    <h3><i class="fas fa-map-pin" aria-hidden="true"></i> <?= htmlspecialchars($base['location_name']) ?></h3>
                     <p><?= nl2br(htmlspecialchars($base['description'])) ?></p>
-                </div>
+                </article>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -621,11 +849,14 @@ function displayStat($value, $default) {
 
             <div class="team-grid">
                 <?php foreach($leaders as $leader): ?>
-                <div class="team-card">
+                <article class="team-card">
                     <div class="team-image-wrapper">
                         <img src="../uploads/<?= htmlspecialchars($leader['image']) ?>" 
                              alt="<?= htmlspecialchars($leader['name']) ?>" 
-                             class="team-image">
+                             class="team-image"
+                             loading="lazy"
+                             width="280"
+                             height="280">
                     </div>
                     <div class="team-content">
                         <h3 class="team-name"><?= htmlspecialchars($leader['name']) ?></h3>
@@ -636,10 +867,10 @@ function displayStat($value, $default) {
                             </p>
                         <?php endif; ?>
                         <p class="team-bio">
-                            <?= nl2br(htmlspecialchars(substr($leader['background'] ?? 'Dedicated professional committed to community development and sustainable impact.', 0, 120))) ?>...
+                            <?= nl2br(htmlspecialchars(substr($leader['background'] ?? 'Dedicated professional committed to community development and sustainable impact.', 0, 120))) ?><?= strlen($leader['background'] ?? '') > 120 ? '...' : '' ?>
                         </p>
                     </div>
-                </div>
+                </article>
                 <?php endforeach; ?>
             </div>
         </div>
@@ -647,24 +878,6 @@ function displayStat($value, $default) {
     <?php endif; ?>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <h3>Join Us in Making a Difference</h3>
-                <p>Together, we can create lasting change in communities that need it most.</p>
-            </div>
-            
-            <div class="footer-links">
-                <a href="contact.php">Get Involved</a>
-                <a href="donate.php">Donate</a>
-                <a href="volunteer.php">Volunteer</a>
-                <a href="contact.php">Contact Us</a>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> <?= htmlspecialchars($org['name'] ?? 'NGO Name') ?>. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <?php include "partials/footer.php"; ?> 
 </body>
 </html>

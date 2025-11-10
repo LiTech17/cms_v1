@@ -40,27 +40,94 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2b6cb0">
+    <meta name="color-scheme" content="light dark">
     <title>NGO - Empowering People with Disabilities</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* === ENHANCED DARK MODE VARIABLES === */
         :root {
+            /* Light Theme Colors */
             --primary: #2b6cb0;
             --primary-dark: #2c5282;
+            --primary-light: #bee3f8;
             --accent: #38b2ac;
-            --danger: #e53e3e;
+            --accent-dark: #319795;
             --success: #38a169;
             --warning: #d69e2e;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #2d3748;
-            --text-light: #718096;
+            --error: #e53e3e;
+            
+            /* Light Theme Backgrounds */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-overlay: rgba(255, 255, 255, 0.95);
+            
+            /* Light Theme Text */
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-tertiary: #718096;
             --text-muted: #a0aec0;
-            --border: #e2e8f0;
-            --shadow: rgba(0, 0, 0, 0.08);
-            --shadow-md: rgba(0, 0, 0, 0.12);
-            --radius: 16px;
-            --radius-sm: 8px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Light Theme Borders */
+            --border-primary: #e2e8f0;
+            --border-secondary: #cbd5e0;
+            --border-accent: #2b6cb0;
+            
+            /* Light Theme Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Animation */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+            
+            /* Layout */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        /* === ENHANCED DARK THEME === */
+        [data-theme="dark"] {
+            /* Dark Theme Colors */
+            --primary: #63b3ed;
+            --primary-dark: #4299e1;
+            --primary-light: #bee3f8;
+            --accent: #4fd1c7;
+            --accent-dark: #38b2ac;
+            --success: #68d391;
+            --warning: #faf089;
+            --error: #fc8181;
+            
+            /* Dark Theme Backgrounds - Enhanced Depth */
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a202c;
+            --bg-tertiary: #2d3748;
+            --bg-card: #1e2736;
+            --bg-overlay: rgba(15, 20, 25, 0.95);
+            
+            /* Dark Theme Text - Better Contrast */
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --text-tertiary: #cbd5e0;
+            --text-muted: #a0aec0;
+            
+            /* Dark Theme Borders */
+            --border-primary: #2d3748;
+            --border-secondary: #4a5568;
+            --border-accent: #63b3ed;
+            
+            /* Dark Theme Shadows - Subtle Glow */
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
         }
 
         * {
@@ -71,10 +138,11 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            transition: background-color var(--transition-normal), color var(--transition-normal);
         }
 
         .container {
@@ -171,7 +239,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: var(--transition);
+            transition: var(--transition-normal);
             backdrop-filter: blur(10px);
         }
 
@@ -199,7 +267,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             border: 2px solid white;
             background: transparent;
             cursor: pointer;
-            transition: var(--transition);
+            transition: var(--transition-normal);
         }
 
         .indicator.active {
@@ -242,12 +310,6 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             opacity: 0.9;
         }
 
-        /* Enhanced Mission Section with Retractable Cards */
-        .organization-info {
-            padding: 5rem 0;
-            background: var(--bg);
-        }
-
         .section-header {
             text-align: center;
             margin-bottom: 3rem;
@@ -256,15 +318,17 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         .section-title {
             font-size: 2.5rem;
             font-weight: 700;
-            color: var(--text);
+            color: var(--text-primary);
             margin-bottom: 1rem;
+            transition: color var(--transition-normal);
         }
 
         .section-subtitle {
             font-size: 1.2rem;
-            color: var(--text-light);
+            color: var(--text-secondary);
             max-width: 600px;
             margin: 0 auto;
+            transition: color var(--transition-normal);
         }
 
         .mission-grid {
@@ -274,40 +338,40 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .mission-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: 0 4px 6px var(--shadow);
-            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-primary);
             overflow: hidden;
-            transition: var(--transition);
+            transition: var(--transition-normal);
         }
 
         .mission-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px var(--shadow-md);
+            box-shadow: var(--shadow-xl);
         }
 
         .panel-header {
             width: 100%;
             padding: 2rem;
-            background: var(--card-bg);
+            background: var(--bg-card);
             border: none;
             display: flex;
             align-items: center;
             gap: 1rem;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background var(--transition-normal);
         }
 
         .panel-header:hover {
-            background: #f7fafc;
+            background: var(--bg-tertiary);
         }
 
         .panel-icon {
             width: 60px;
             height: 60px;
             background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 12px;
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -324,18 +388,20 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         .panel-title h3 {
             margin: 0 0 0.25rem 0;
             font-size: 1.25rem;
-            color: var(--text);
+            color: var(--text-primary);
+            transition: color var(--transition-normal);
         }
 
         .panel-title p {
             margin: 0;
-            color: var(--text-light);
+            color: var(--text-secondary);
             font-size: 0.9rem;
+            transition: color var(--transition-normal);
         }
 
         .toggle-icon {
-            color: var(--text-light);
-            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+            transition: transform var(--transition-normal), color var(--transition-normal);
             font-size: 1.2rem;
         }
 
@@ -370,9 +436,10 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .info-block p {
-            color: #4a5568;
+            color: var(--text-secondary);
             line-height: 1.6;
             margin: 0;
+            transition: color var(--transition-normal);
         }
 
         .objectives-list {
@@ -385,8 +452,9 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             display: flex;
             align-items: flex-start;
             gap: 0.75rem;
-            color: #4a5568;
+            color: var(--text-secondary);
             animation: fadeInUp 0.6s ease;
+            transition: color var(--transition-normal);
         }
 
         .objective-item i {
@@ -396,7 +464,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .no-data {
-            color: var(--text-light);
+            color: var(--text-secondary);
             font-style: italic;
             text-align: center;
             padding: 2rem;
@@ -418,7 +486,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .all-programmes {
-            background: var(--bg);
+            background: var(--bg-secondary);
         }
 
         .programmes-grid {
@@ -429,12 +497,12 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .programme-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
             overflow: hidden;
-            box-shadow: 0 4px 6px var(--shadow);
-            border: 1px solid var(--border);
-            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-primary);
+            transition: var(--transition-normal);
             opacity: 0;
             transform: translateY(30px);
         }
@@ -446,7 +514,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         .programme-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px var(--shadow-md);
+            box-shadow: var(--shadow-xl);
         }
 
         .programme-image {
@@ -487,14 +555,16 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         .programme-content h3 {
             margin: 0 0 1rem 0;
-            color: var(--text);
+            color: var(--text-primary);
             font-size: 1.25rem;
+            transition: color var(--transition-normal);
         }
 
         .programme-content p {
-            color: var(--text-light);
+            color: var(--text-secondary);
             line-height: 1.6;
             margin-bottom: 1.5rem;
+            transition: color var(--transition-normal);
         }
 
         .programme-actions {
@@ -513,12 +583,12 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         .filter-btn {
             padding: 0.75rem 1.5rem;
-            border: 2px solid var(--border);
-            background: var(--card-bg);
-            color: #4a5568;
+            border: 2px solid var(--border-primary);
+            background: var(--bg-card);
+            color: var(--text-secondary);
             border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: var(--transition);
+            transition: var(--transition-normal);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -537,7 +607,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             grid-column: 1 / -1;
             text-align: center;
             padding: 4rem 2rem;
-            color: var(--text-light);
+            color: var(--text-secondary);
         }
 
         .empty-state i {
@@ -554,7 +624,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         /* Leadership Team */
         .leadership-team {
             padding: 5rem 0;
-            background: var(--card-bg);
+            background: var(--bg-card);
         }
 
         .team-grid {
@@ -565,17 +635,17 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .team-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
             overflow: hidden;
-            box-shadow: 0 4px 6px var(--shadow);
-            border: 1px solid var(--border);
-            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-primary);
+            transition: var(--transition-normal);
         }
 
         .team-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px var(--shadow-md);
+            box-shadow: var(--shadow-xl);
         }
 
         .team-image {
@@ -596,7 +666,8 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         .team-content h3 {
             margin: 0 0 0.5rem 0;
-            color: var(--text);
+            color: var(--text-primary);
+            transition: color var(--transition-normal);
         }
 
         .position {
@@ -606,15 +677,17 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .qualification {
-            color: var(--text-light);
+            color: var(--text-secondary);
             font-size: 0.9rem;
             margin-bottom: 1rem;
+            transition: color var(--transition-normal);
         }
 
         .background {
-            color: #4a5568;
+            color: var(--text-secondary);
             font-size: 0.9rem;
             line-height: 1.5;
+            transition: color var(--transition-normal);
         }
 
         /* CTA Section */
@@ -646,7 +719,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         /* Donation Methods */
         .donation-methods {
             padding: 5rem 0;
-            background: var(--bg);
+            background: var(--bg-secondary);
         }
 
         .donation-grid {
@@ -657,18 +730,18 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .donation-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
             padding: 2rem;
             text-align: center;
-            box-shadow: 0 4px 6px var(--shadow);
-            border: 1px solid var(--border);
-            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-primary);
+            transition: var(--transition-normal);
         }
 
         .donation-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px var(--shadow-md);
+            box-shadow: var(--shadow-xl);
         }
 
         .donation-icon {
@@ -679,12 +752,14 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         .donation-content h3 {
             margin: 0 0 1rem 0;
-            color: var(--text);
+            color: var(--text-primary);
+            transition: color var(--transition-normal);
         }
 
         .donation-content p {
             margin: 0.5rem 0;
-            color: #4a5568;
+            color: var(--text-secondary);
+            transition: color var(--transition-normal);
         }
 
         .qr-code {
@@ -697,7 +772,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .instructions {
-            background: #f7fafc;
+            background: var(--bg-tertiary);
             padding: 1rem;
             border-radius: var(--radius-sm);
             margin-top: 1rem;
@@ -707,6 +782,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         .instructions p {
             margin: 0;
             font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
         /* Enhanced Modal */
@@ -724,11 +800,11 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         .modal-content {
             position: relative;
-            background: var(--card-bg);
+            background: var(--bg-card);
             margin: 2rem auto;
             max-width: 800px;
             width: 90%;
-            border-radius: var(--radius);
+            border-radius: var(--radius-lg);
             overflow: hidden;
             max-height: 90vh;
             overflow-y: auto;
@@ -773,14 +849,16 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
 
         .modal-body h3 {
             font-size: 1.75rem;
-            color: var(--text);
+            color: var(--text-primary);
             margin-bottom: 1rem;
+            transition: color var(--transition-normal);
         }
 
         .modal-description {
-            color: #4a5568;
+            color: var(--text-secondary);
             line-height: 1.7;
             margin-bottom: 2rem;
+            transition: color var(--transition-normal);
         }
 
         .modal-actions {
@@ -800,7 +878,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
-            transition: var(--transition);
+            transition: var(--transition-normal);
             text-decoration: none;
         }
 
@@ -816,14 +894,14 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .btn-secondary {
-            background: var(--card-bg);
-            color: #4a5568;
-            border: 2px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 2px solid var(--border-primary);
         }
 
         .btn-secondary:hover {
-            background: #f7fafc;
-            border-color: #cbd5e0;
+            background: var(--bg-tertiary);
+            border-color: var(--border-secondary);
         }
 
         .btn-outline {
@@ -849,7 +927,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            transition: var(--transition);
+            transition: var(--transition-normal);
             text-decoration: none;
         }
 
@@ -863,7 +941,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .donate-btn {
-            background: var(--danger);
+            background: var(--error);
             color: white;
         }
 
@@ -872,7 +950,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
         }
 
         .close-modal-btn {
-            background: var(--text-light);
+            background: var(--text-secondary);
             color: white;
         }
 
@@ -912,6 +990,78 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* Theme Toggle Styles */
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            width: 60px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+            position: relative;
+            transition: all var(--transition-normal);
+            overflow: hidden;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: scale(1.05);
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #f6ad55, #ed8936);
+            border-radius: 50%;
+            transition: all var(--transition-normal);
+            z-index: 1;
+        }
+
+        .theme-toggle::after {
+            content: '☀️';
+            font-size: 0.9rem;
+            position: absolute;
+            right: 8px;
+            transition: all var(--transition-normal);
+            filter: grayscale(0.3);
+        }
+
+        [data-theme="dark"] .theme-toggle::before {
+            left: calc(100% - 28px);
+            background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+            box-shadow: 0 0 10px rgba(203, 213, 224, 0.5);
+        }
+
+        [data-theme="dark"] .theme-toggle::after {
+            content: '🌙';
+            left: 8px;
+            right: auto;
+            filter: brightness(1.2);
+        }
+
+        .theme-toggle .toggle-icons {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .theme-toggle .toggle-icons span {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            transition: opacity var(--transition-normal);
         }
 
         /* Responsive Design */
@@ -999,6 +1149,32 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             .slide-caption {
                 font-size: 2rem;
             }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
         }
     </style>
 </head>
@@ -1093,114 +1269,7 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
                 <p class="section-subtitle">Committed to creating an inclusive society where everyone thrives with dignity and opportunity</p>
             </div>
             
-            <div class="mission-grid">
-                <!-- Panel 1 -->
-                <div class="mission-card retractable active">
-                    <button class="panel-header">
-                        <div class="panel-icon">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <div class="panel-title">
-                            <h3>Our Vision & Mission</h3>
-                            <p>Our guiding principles and aspirations</p>
-                        </div>
-                        <span class="toggle-icon">
-                            <i class="fas fa-minus"></i>
-                        </span>
-                    </button>
-                    <div class="panel-content">
-                        <?php if(!empty($org['vision'])): ?>
-                            <div class="info-block">
-                                <h4><i class="fas fa-eye"></i> Our Vision</h4>
-                                <p><?= nl2br(htmlspecialchars($org['vision'])) ?></p>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if(!empty($org['mission'])): ?>
-                            <div class="info-block">
-                                <h4><i class="fas fa-flag"></i> Our Mission</h4>
-                                <p><?= nl2br(htmlspecialchars($org['mission'])) ?></p>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if(!empty($org['goals'])): ?>
-                            <div class="info-block">
-                                <h4><i class="fas fa-trophy"></i> Our Goals</h4>
-                                <p><?= nl2br(htmlspecialchars($org['goals'])) ?></p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
 
-                <!-- Panel 2 -->
-                <div class="mission-card retractable">
-                    <button class="panel-header">
-                        <div class="panel-icon">
-                            <i class="fas fa-map-marked-alt"></i>
-                        </div>
-                        <div class="panel-title">
-                            <h3>Our Reach</h3>
-                            <p>Where we make an impact</p>
-                        </div>
-                        <span class="toggle-icon">
-                            <i class="fas fa-plus"></i>
-                        </span>
-                    </button>
-                    <div class="panel-content">
-                        <?php if(!empty($org['geographical_location'])): ?>
-                            <div class="info-block">
-                                <h4><i class="fas fa-globe-africa"></i> Geographical Coverage</h4>
-                                <p><?= nl2br(htmlspecialchars($org['geographical_location'])) ?></p>
-                            </div>
-                        <?php else: ?>
-                            <div class="no-data">
-                                <i class="fas fa-map"></i>
-                                <p>Geographical information coming soon...</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- Panel 3 -->
-                <div class="mission-card retractable">
-                    <button class="panel-header">
-                        <div class="panel-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="panel-title">
-                            <h3>Our Objectives</h3>
-                            <p>Key focus areas and targets</p>
-                        </div>
-                        <span class="toggle-icon">
-                            <i class="fas fa-plus"></i>
-                        </span>
-                    </button>
-                    <div class="panel-content">
-                        <?php if(!empty($org['objectives'])): ?>
-                            <div class="objectives-list">
-                                <?php 
-                                $objectives = array_filter(array_map('trim', explode(",", $org['objectives'])));
-                                foreach($objectives as $obj): 
-                                    if(!empty($obj)):
-                                ?>
-                                    <div class="objective-item">
-                                        <i class="fas fa-check-circle"></i>
-                                        <span><?= htmlspecialchars($obj) ?></span>
-                                    </div>
-                                <?php 
-                                    endif;
-                                endforeach; 
-                                ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="no-data">
-                                <i class="fas fa-bullseye"></i>
-                                <p>Objectives information coming soon...</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -1451,10 +1520,78 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             </div>
         </div>
     </div>
-    
+
+    <!-- THEME TOGGLE BUTTON -->
+    <div class="theme-toggle-container" style="position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <div class="toggle-icons">
+                <span>☀️</span>
+                <span>🌙</span>
+            </div>
+        </button>
+    </div>
 
     <script>
+    // Enhanced Theme Manager
+    class ThemeManager {
+        constructor() {
+            this.themeToggle = document.getElementById('themeToggle');
+            this.currentTheme = localStorage.getItem('theme') || this.getSystemTheme();
+            this.init();
+        }
+        
+        init() {
+            this.applyTheme(this.currentTheme);
+            this.setupEventListeners();
+        }
+        
+        setupEventListeners() {
+            this.themeToggle.addEventListener('click', () => this.toggleTheme());
+            
+            // System theme change listener
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    this.applyTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+        
+        toggleTheme() {
+            this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+            this.applyTheme(this.currentTheme);
+            this.saveTheme();
+        }
+        
+        applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Update meta theme-color for mobile browsers
+            this.updateMetaThemeColor(theme);
+        }
+        
+        updateMetaThemeColor(theme) {
+            let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (!metaThemeColor) {
+                metaThemeColor = document.createElement('meta');
+                metaThemeColor.name = 'theme-color';
+                document.head.appendChild(metaThemeColor);
+            }
+            metaThemeColor.setAttribute('content', theme === 'dark' ? '#0f1419' : '#2b6cb0');
+        }
+        
+        saveTheme() {
+            localStorage.setItem('theme', this.currentTheme);
+        }
+        
+        getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+    }
+
+    // Initialize theme manager
     document.addEventListener('DOMContentLoaded', function() {
+        const themeManager = new ThemeManager();
+
         // Hero Carousel
         const carousel = {
             slides: document.querySelectorAll('.hero-carousel .slide'),
@@ -1671,7 +1808,14 @@ $donation_methods = $pdo->query("SELECT * FROM donation_methods ORDER BY id DESC
             img.style.transition = 'opacity 0.3s ease';
         });
     });
+
+    // Handle reduced motion preferences
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.style.setProperty('--transition-fast', 'none');
+        document.documentElement.style.setProperty('--transition-normal', 'none');
+        document.documentElement.style.setProperty('--transition-slow', 'none');
+    }
     </script>
-    <?php include "partials/footer.php"; ?>s
+    <?php include "partials/footer.php"; ?>
 </body>
 </html>

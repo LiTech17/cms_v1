@@ -14,27 +14,7 @@ try {
     $new_message_count = 0;
 }
 
-// ------------------------------------------------------------------
-// 2. ANALYTICS LOGIC (Tracking Admin User Activity)
-// ------------------------------------------------------------------
-// Include the analytics function
-require_once "../core/analytics.php"; // Adjust path if necessary (e.g., if this file is deep)
 
-// Define parameters for the log
-$current_session_id = session_id();
-$current_url_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
-
-// Assuming the admin user is logged in, use their ID (e.g., from the session)
-// You might use $_SESSION['admin_user_id'] or similar for the admin area
-$admin_user_id = $_SESSION['user_id'] ?? null; 
-
-// Log the event (using 'admin_page_view' to distinguish from public views)
-log_activity(
-    'admin_page_view', 
-    $current_url_path,
-    $admin_user_id,
-    $current_session_id
-);
 
 // ------------------------------------------------------------------
 // 3. FRONT-END RENDERING
@@ -43,7 +23,7 @@ log_activity(
 
 <header class="topbar">
     <div class="topbar-left">
-        <h1>Admin Dashboard</h1>
+        <h1>Editor Dashboard</h1>
     </div>
     <div class="topbar-right">
         
@@ -56,7 +36,8 @@ log_activity(
 
         <div class="user-info">
             <i class="fas fa-user-circle"></i>
-            <span><?php echo htmlspecialchars($_SESSION['username'] ?? 'Admin'); ?></span>
+            <span><?php echo htmlspecialchars($_SESSION['username'] ?? 'Editor'); ?></span>
         </div>
     </div>
 </header>
+

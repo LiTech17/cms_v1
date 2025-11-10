@@ -7,7 +7,6 @@
 
     <nav class="sidebar-nav">
         <ul>
-            <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="settings.php"><i class="fas fa-cogs"></i> Site Settings</a></li>
             <li><a href="home_hero.php"><i class="fas fa-images"></i> Home Hero</a></li>
             <li><a href="organization_info.php"><i class="fas fa-info-circle"></i> Organization Info</a></li>
@@ -16,6 +15,7 @@
             <li><a href="leadership_team.php"><i class="fas fa-users"></i> Leadership Team</a></li>
             <li><a href="programmes.php"><i class="fas fa-project-diagram"></i> Programmes</a></li>
             <li><a href="donation_methods.php"><i class="fas fa-donate"></i> Donation Options</a></li>
+            <li><a href="editors.php"><i class="fas fa-user-edit"></i>Editors</a></li>
         </ul>
     </nav>
 

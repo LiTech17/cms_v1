@@ -2,7 +2,7 @@
 require_once "../config/database.php";
 require_once "../core/auth.php";
 require_once "../core/upload.php";
-checkLogin();
+checkAdminLogin();
 
 $programme_id = $_GET['id'] ?? null;
 if (!$programme_id) die("Programme not specified.");

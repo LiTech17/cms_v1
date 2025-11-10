@@ -2,7 +2,7 @@
 require_once "../config/database.php";
 require_once "../core/auth.php";
 require_once "../core/upload.php";
-checkAdminLogin();
+checkEditorLogin(); // Editor-specific authentication
 
 $programme_id = $_GET['id'] ?? null;
 if (!$programme_id) {
@@ -48,12 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_programme'])) 
         $is_featured = isset($_POST['is_featured']) ? 1 : 0;
 
         // Validate required fields
-        if (empty($title)) {
-            throw new Exception("Programme title is required.");
-        }
-
-        if (empty($introduction)) {
-            throw new Exception("Programme introduction is required.");
+        if (empty($title) || empty($introduction)) {
+            throw new Exception("Title and introduction are required.");
         }
 
         // Update programme
@@ -74,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_programme'])) 
             }
         }
 
-        $success = "✅ Programme updated successfully!";
+        $success = "Programme updated successfully!";
         
         // Refresh programme data
         $stmt = $pdo->prepare("SELECT * FROM programmes WHERE id = ?");
@@ -93,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['new_image'])) {
         if ($file) {
             $stmt = $pdo->prepare("INSERT INTO programme_media (programme_id, file_name, file_type) VALUES (?, ?, ?)");
             $stmt->execute([$programme_id, $file, $_FILES['new_image']['type']]);
-            $success = "✅ Image uploaded successfully!";
+            $success = "Image uploaded successfully!";
             header("Location: programme_edit.php?id=$programme_id");
             exit();
         } else {
@@ -124,7 +120,7 @@ if (isset($_GET['delete_image'])) {
             unlink($file_path);
         }
         
-        $success = "🗑️ Image deleted successfully!";
+        $success = "Image deleted successfully!";
         header("Location: programme_edit.php?id=$programme_id");
         exit();
     }
@@ -138,60 +134,64 @@ if (isset($_GET['delete_image'])) {
     <title>Edit <?= htmlspecialchars($programme['title']) ?> | NGO CMS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Reuse the same styles from create.php with some additions */
+        /* === MOBILE-FIRST VARIABLES === */
         :root {
-            --primary: #2b6cb0;
-            --primary-dark: #2c5282;
-            --accent: #38b2ac;
-            --success: #38a169;
-            --warning: #d69e2e;
-            --danger: #e53e3e;
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #dbeafe;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
             --bg: #f8fafc;
             --card-bg: #ffffff;
-            --text: #2d3748;
-            --text-light: #718096;
+            --text: #1e293b;
+            --text-light: #64748b;
             --border: #e2e8f0;
-            --shadow: rgba(0, 0, 0, 0.08);
+            --radius-sm: 6px;
             --radius: 12px;
-            --transition: all 0.3s ease;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --transition: all 0.2s ease-in-out;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* === BASE STYLES === */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
         }
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
             line-height: 1.6;
+            padding: 1rem;
+            min-height: 100vh;
         }
 
-        .admin-container {
-            max-width: 1200px;
+        .container {
+            max-width: 100%;
             margin: 0 auto;
-            padding: 2rem;
         }
 
-        /* Header Styles */
+        /* === HEADER STYLES === */
         .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
+            padding-bottom: 1.5rem;
             border-bottom: 2px solid var(--border);
         }
 
         .header-content h1 {
-            font-size: 2.25rem;
+            font-size: 1.75rem;
             font-weight: 700;
             color: var(--text);
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
         .header-content h1 i {
@@ -200,8 +200,14 @@ if (isset($_GET['delete_image'])) {
 
         .page-subtitle {
             color: var(--text-light);
-            font-size: 1.1rem;
-            margin-top: 0.5rem;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .back-link {
@@ -212,24 +218,59 @@ if (isset($_GET['delete_image'])) {
             text-decoration: none;
             font-weight: 500;
             margin-bottom: 1rem;
-            transition: var(--transition);
+            padding: 0.5rem 0;
         }
 
         .back-link:hover {
-            color: var(--primary-dark);
-            transform: translateX(-2px);
+            text-decoration: underline;
         }
 
-        /* Tabs */
+        /* === ALERTS === */
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(-10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* === TABS === */
         .tabs {
             display: flex;
             gap: 0;
             margin-bottom: 2rem;
             border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .tab {
-            padding: 1rem 2rem;
+            padding: 1rem 1.5rem;
             background: none;
             border: none;
             border-bottom: 2px solid transparent;
@@ -237,6 +278,9 @@ if (isset($_GET['delete_image'])) {
             color: var(--text-light);
             cursor: pointer;
             transition: var(--transition);
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-height: 48px;
         }
 
         .tab.active {
@@ -250,68 +294,74 @@ if (isset($_GET['delete_image'])) {
 
         .tab-content {
             display: none;
+            animation: fadeIn 0.3s ease-out;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        /* Form Styles (reused from create.php) */
-        .form-card {
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* === CARDS === */
+        .card {
             background: var(--card-bg);
             border-radius: var(--radius);
-            box-shadow: 0 4px 6px var(--shadow);
+            box-shadow: var(--shadow-sm);
             border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
             overflow: hidden;
-            margin-bottom: 2rem;
         }
 
-        .form-header {
-            padding: 1.5rem 2rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
+        .card-header {
+            padding: 1.25rem;
+            background: var(--primary);
+            color: var(--white);
         }
 
-        .form-header h3 {
-            font-size: 1.4rem;
+        .card-header h3 {
+            font-size: 1.25rem;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
 
-        .form-content {
-            padding: 2rem;
+        .card-body {
+            padding: 1.5rem;
         }
 
+        /* === FORM ELEMENTS === */
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-label {
             display: block;
             font-weight: 600;
-            margin-bottom: 0.5rem;
             color: var(--text);
-            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .form-hint {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            margin-top: 0.25rem;
-            line-height: 1.4;
+        .form-required::after {
+            content: " *";
+            color: var(--danger);
         }
 
         .form-input, .form-textarea, .form-select {
             width: 100%;
-            padding: 0.875rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: white;
-            font-size: 0.95rem;
+            padding: 0.875rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
             transition: var(--transition);
-            font-family: inherit;
+            background: var(--white);
+            -webkit-appearance: none;
+            min-height: 48px;
         }
 
         .form-textarea {
@@ -323,47 +373,69 @@ if (isset($_GET['delete_image'])) {
         .form-input:focus, .form-textarea:focus, .form-select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
         }
 
         .checkbox {
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--border);
-            border-radius: 4px;
-            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
         }
 
-        .form-row {
+        /* === STATISTICS === */
+        .statistic-item {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1.25rem;
+            background: var(--bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
         }
 
-        /* Media Grid */
+        .statistic-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* === MEDIA GALLERY === */
         .media-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 1rem;
             margin-top: 1rem;
         }
 
         .media-item {
             position: relative;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             overflow: hidden;
             background: var(--bg);
+            aspect-ratio: 1;
         }
 
         .media-item img {
             width: 100%;
-            height: 150px;
+            height: 100%;
             object-fit: cover;
         }
 
@@ -390,24 +462,32 @@ if (isset($_GET['delete_image'])) {
             gap: 0.5rem;
         }
 
-        /* Buttons */
+        /* === BUTTONS === */
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
-            padding: 0.875rem 1.75rem;
-            border: none;
-            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: var(--transition);
             text-decoration: none;
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
         }
 
         .btn-primary {
             background: var(--primary);
-            color: white;
+            color: var(--white);
+            border-color: var(--primary);
         }
 
         .btn-primary:hover {
@@ -418,179 +498,254 @@ if (isset($_GET['delete_image'])) {
         .btn-outline {
             background: transparent;
             color: var(--primary);
-            border: 2px solid var(--primary);
+            border-color: var(--border);
         }
 
         .btn-outline:hover {
             background: var(--primary);
-            color: white;
+            color: var(--white);
+            border-color: var(--primary);
         }
 
         .btn-success {
             background: var(--success);
-            color: white;
+            color: var(--white);
+            border-color: var(--success);
         }
 
         .btn-danger {
             background: var(--danger);
-            color: white;
+            color: var(--white);
+            border-color: var(--danger);
+            padding: 0.5rem;
+            min-width: 44px;
+            min-height: 44px;
         }
 
         .btn-sm {
             padding: 0.5rem 1rem;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
+            min-height: 36px;
         }
 
-        .btn-block {
+        /* === FORM ACTIONS === */
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .form-actions .btn {
             width: 100%;
         }
 
-        /* Alert Styles */
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            border-left: 4px solid transparent;
+        /* === EMPTY STATES === */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 2px dashed var(--border);
+            margin: 2rem 0;
         }
 
-        .alert-success {
-            background: #f0fff4;
-            border-left-color: var(--success);
-            color: #22543d;
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--border);
+            margin-bottom: 1rem;
         }
 
-        .alert-error {
-            background: #fed7d7;
-            border-left-color: var(--danger);
-            color: #742a2a;
+        .empty-state h3 {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
         }
 
-        /* Form Actions */
-        .form-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
+        .empty-state p {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .admin-container {
-                padding: 1rem;
+        /* === LOADING STATES === */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* === TABLET STYLES === */
+        @media (min-width: 768px) {
+            body {
+                padding: 1.5rem;
+            }
+
+            .container {
+                max-width: 1000px;
             }
 
             .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
             }
 
-            .tabs {
-                flex-direction: column;
+            .header-actions {
+                flex-direction: row;
+                align-items: center;
             }
 
             .form-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .statistic-item {
+                grid-template-columns: 1fr 1fr auto;
+                gap: 1rem;
+            }
+
+            .statistic-actions {
+                justify-content: flex-end;
             }
 
             .media-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             }
 
             .form-actions {
-                flex-direction: column;
+                flex-direction: row;
+                justify-content: flex-end;
             }
+
+            .form-actions .btn {
+                width: auto;
+            }
+        }
+
+        /* === DESKTOP STYLES === */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1200px;
+            }
+
+            .media-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+
+        /* === ACCESSIBILITY === */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <!-- Back Navigation -->
-        <a href="programmes.php" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Programmes
-        </a>
-
-        <!-- Page Header -->
+    <div class="container">
         <div class="page-header">
             <div class="header-content">
+                <a href="programmes.php" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Programmes
+                </a>
                 <h1>
                     <i class="fas fa-edit"></i>
-                    Edit <?= htmlspecialchars($programme['title']) ?>
+                    Edit Programme
                 </h1>
                 <p class="page-subtitle">Update programme details, statistics, and media</p>
             </div>
-            <div>
+            <div class="header-actions">
                 <a href="../public/programme_detail.php?id=<?= $programme_id ?>" class="btn btn-outline" target="_blank">
                     <i class="fas fa-eye"></i> View Public Page
                 </a>
             </div>
         </div>
 
-        <!-- Alerts -->
         <?php if(isset($success)): ?>
             <div class="alert alert-success" role="alert">
                 <i class="fas fa-check-circle"></i>
-                <?= htmlspecialchars($success) ?>
+                <div>
+                    <strong>Success!</strong><br>
+                    <?= htmlspecialchars($success) ?>
+                </div>
             </div>
         <?php endif; ?>
 
         <?php if(isset($error)): ?>
             <div class="alert alert-error" role="alert">
                 <i class="fas fa-exclamation-circle"></i>
-                <?= htmlspecialchars($error) ?>
+                <div>
+                    <strong>Attention Needed</strong><br>
+                    <?= htmlspecialchars($error) ?>
+                </div>
             </div>
         <?php endif; ?>
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" onclick="showTab('details')">Programme Details</button>
-            <button class="tab" onclick="showTab('statistics')">Impact Statistics</button>
-            <button class="tab" onclick="showTab('media')">Media Gallery</button>
+            <button class="tab active" onclick="showTab('details')" aria-selected="true">
+                <i class="fas fa-info-circle"></i> Details
+            </button>
+            <button class="tab" onclick="showTab('statistics')" aria-selected="false">
+                <i class="fas fa-chart-bar"></i> Statistics
+            </button>
+            <button class="tab" onclick="showTab('media')" aria-selected="false">
+                <i class="fas fa-images"></i> Media
+            </button>
         </div>
 
         <!-- Details Tab -->
         <div id="details-tab" class="tab-content active">
-            <form method="POST" class="form-card">
-                <div class="form-header">
-                    <h3><i class="fas fa-info-circle"></i> Basic Information</h3>
+            <form method="POST" class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> Programme Information</h3>
                 </div>
-                <div class="form-content">
+                <div class="card-body">
                     <div class="form-group">
-                        <label for="title" class="form-label">Programme Title *</label>
+                        <label class="form-label form-required" for="title">Programme Title</label>
                         <input type="text" id="title" name="title" class="form-input" 
                                value="<?= htmlspecialchars($programme['title']) ?>" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="introduction" class="form-label">Programme Introduction *</label>
+                        <label class="form-label form-required" for="introduction">Introduction</label>
                         <textarea id="introduction" name="introduction" class="form-textarea" required><?= htmlspecialchars($programme['introduction']) ?></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="objectives" class="form-label">Key Objectives</label>
+                        <label class="form-label" for="objectives">Objectives</label>
                         <textarea id="objectives" name="objectives" class="form-textarea"><?= htmlspecialchars($programme['objectives'] ?? '') ?></textarea>
-                        <div class="form-hint">Separate each objective with a new line</div>
                     </div>
 
                     <div class="form-group">
-                        <label for="key_achievements" class="form-label">Key Achievements</label>
+                        <label class="form-label" for="key_achievements">Key Achievements</label>
                         <textarea id="key_achievements" name="key_achievements" class="form-textarea"><?= htmlspecialchars($programme['key_achievements'] ?? '') ?></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="target_beneficiaries" class="form-label">Target Beneficiaries</label>
+                            <label class="form-label" for="target_beneficiaries">Target Beneficiaries</label>
                             <input type="text" id="target_beneficiaries" name="target_beneficiaries" class="form-input" 
                                    value="<?= htmlspecialchars($programme['target_beneficiaries'] ?? '') ?>">
                         </div>
 
                         <div class="form-group">
-                            <label for="duration" class="form-label">Duration</label>
+                            <label class="form-label" for="duration">Duration</label>
                             <input type="text" id="duration" name="duration" class="form-input" 
                                    value="<?= htmlspecialchars($programme['duration'] ?? '') ?>">
                         </div>
@@ -598,7 +753,7 @@ if (isset($_GET['delete_image'])) {
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="status" class="form-label">Status</label>
+                            <label class="form-label form-required" for="status">Status</label>
                             <select id="status" name="status" class="form-select" required>
                                 <option value="active" <?= $programme['status'] === 'active' ? 'selected' : '' ?>>Active</option>
                                 <option value="completed" <?= $programme['status'] === 'completed' ? 'selected' : '' ?>>Completed</option>
@@ -607,20 +762,20 @@ if (isset($_GET['delete_image'])) {
                         </div>
 
                         <div class="form-group">
-                            <label for="budget" class="form-label">Budget ($)</label>
+                            <label class="form-label" for="budget">Budget ($)</label>
                             <input type="number" id="budget" name="budget" class="form-input" 
                                    value="<?= $programme['budget'] ?>" step="0.01" min="0">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="location" class="form-label">Location</label>
+                        <label class="form-label" for="location">Location</label>
                         <input type="text" id="location" name="location" class="form-input" 
                                value="<?= htmlspecialchars($programme['location'] ?? '') ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="partner_organizations" class="form-label">Partner Organizations</label>
+                        <label class="form-label" for="partner_organizations">Partner Organizations</label>
                         <textarea id="partner_organizations" name="partner_organizations" class="form-textarea"><?= htmlspecialchars($programme['partner_organizations'] ?? '') ?></textarea>
                     </div>
 
@@ -628,13 +783,13 @@ if (isset($_GET['delete_image'])) {
                         <div class="checkbox-group">
                             <input type="checkbox" id="is_featured" name="is_featured" 
                                    class="checkbox" <?= $programme['is_featured'] ? 'checked' : '' ?>>
-                            <label for="is_featured" class="form-label">Feature this programme on the homepage</label>
+                            <label for="is_featured" class="form-label">Feature on homepage</label>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" name="update_programme" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Update Programme
+                        <button type="submit" name="update_programme" class="btn btn-primary" id="saveDetails">
+                            <i class="fas fa-save"></i> Save Changes
                         </button>
                     </div>
                 </div>
@@ -643,50 +798,43 @@ if (isset($_GET['delete_image'])) {
 
         <!-- Statistics Tab -->
         <div id="statistics-tab" class="tab-content">
-            <form method="POST" class="form-card">
-                <div class="form-header">
+            <form method="POST" class="card">
+                <div class="card-header">
                     <h3><i class="fas fa-chart-bar"></i> Impact Statistics</h3>
                 </div>
-                <div class="form-content">
+                <div class="card-body">
                     <div class="form-group">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                             <label class="form-label">Programme Statistics</label>
                             <button type="button" class="btn btn-outline btn-sm" onclick="addStatistic()">
                                 <i class="fas fa-plus"></i> Add Statistic
                             </button>
                         </div>
                         
-                        <div id="statistics-container">
+                        <div id="statistics-container" aria-live="polite">
                             <?php foreach($statistics as $index => $stat): ?>
-                                <div class="form-row" style="margin-bottom: 1rem; align-items: end;">
-                                    <div class="form-group">
-                                        <input type="text" name="statistics[<?= $index ?>][name]" 
-                                               class="form-input" placeholder="Statistic name" 
-                                               value="<?= htmlspecialchars($stat['statistic_name']) ?>" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <input type="text" name="statistics[<?= $index ?>][value]" 
-                                               class="form-input" placeholder="Statistic value" 
-                                               value="<?= htmlspecialchars($stat['statistic_value']) ?>" required>
-                                    </div>
-                                    <div class="form-group">
+                                <div class="statistic-item" data-id="<?= $index ?>">
+                                    <input type="text" name="statistics[<?= $index ?>][name]" 
+                                           class="form-input" placeholder="Statistic name" 
+                                           value="<?= htmlspecialchars($stat['statistic_name']) ?>" required>
+                                    <input type="text" name="statistics[<?= $index ?>][value]" 
+                                           class="form-input" placeholder="Statistic value" 
+                                           value="<?= htmlspecialchars($stat['statistic_value']) ?>" required>
+                                    <div class="statistic-actions">
                                         <select name="statistics[<?= $index ?>][icon]" class="form-select">
                                             <?php
                                             $iconOptions = [
-                                                'fas fa-users', 'fas fa-map-marker-alt', 'fas fa-chart-line', 'fas fa-tasks',
-                                                'fas fa-dollar-sign', 'fas fa-graduation-cap', 'fas fa-heart', 'fas fa-home',
-                                                'fas fa-school', 'fas fa-hand-holding-heart', 'fas fa-briefcase', 'fas fa-seedling'
+                                                'fas fa-users', 'fas fa-map-marker-alt', 'fas fa-chart-line', 
+                                                'fas fa-graduation-cap', 'fas fa-heart', 'fas fa-home'
                                             ];
                                             foreach ($iconOptions as $iconOption): ?>
                                                 <option value="<?= $iconOption ?>" <?= $stat['statistic_icon'] === $iconOption ? 'selected' : '' ?>>
-                                                    <?= str_replace('fas fa-', '', str_replace('-', ' ', $iconOption)) ?>
+                                                    <?= str_replace('fas fa-', '', $iconOption) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
-                                    </div>
-                                    <div>
                                         <input type="hidden" name="statistics[<?= $index ?>][order]" value="<?= $stat['display_order'] ?>">
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.form-row').remove()">
+                                        <button type="button" class="btn btn-danger" onclick="removeStatistic(<?= $index ?>)" aria-label="Remove statistic">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -696,7 +844,7 @@ if (isset($_GET['delete_image'])) {
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" name="update_programme" class="btn btn-primary">
+                        <button type="submit" name="update_programme" class="btn btn-primary" id="saveStatistics">
                             <i class="fas fa-save"></i> Update Statistics
                         </button>
                     </div>
@@ -707,15 +855,15 @@ if (isset($_GET['delete_image'])) {
         <!-- Media Tab -->
         <div id="media-tab" class="tab-content">
             <!-- Upload Form -->
-            <form method="POST" enctype="multipart/form-data" class="form-card" style="margin-bottom: 2rem;">
-                <div class="form-header">
-                    <h3><i class="fas fa-upload"></i> Upload New Image</h3>
+            <form method="POST" enctype="multipart/form-data" class="card" style="margin-bottom: 1.5rem;">
+                <div class="card-header">
+                    <h3><i class="fas fa-upload"></i> Upload Image</h3>
                 </div>
-                <div class="form-content">
+                <div class="card-body">
                     <div class="form-group">
                         <label class="form-label">Select Image</label>
                         <input type="file" name="new_image" class="form-input" accept="image/*" required>
-                        <div class="form-hint">Supported formats: JPG, PNG, WebP • Max 5MB</div>
+                        <div class="form-hint">JPG, PNG, WebP • Max 5MB</div>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">
@@ -726,11 +874,11 @@ if (isset($_GET['delete_image'])) {
             </form>
 
             <!-- Media Gallery -->
-            <div class="form-card">
-                <div class="form-header">
+            <div class="card">
+                <div class="card-header">
                     <h3><i class="fas fa-images"></i> Programme Images (<?= count($programme_media) ?>)</h3>
                 </div>
-                <div class="form-content">
+                <div class="card-body">
                     <?php if (!empty($programme_media)): ?>
                         <div class="media-grid">
                             <?php foreach($programme_media as $media): ?>
@@ -741,12 +889,14 @@ if (isset($_GET['delete_image'])) {
                                         <div class="media-actions">
                                             <a href="../uploads/<?= htmlspecialchars($media['file_name']) ?>" 
                                                target="_blank" class="btn btn-sm" 
-                                               style="background: rgba(255,255,255,0.9); color: var(--text);">
+                                               style="background: rgba(255,255,255,0.9); color: var(--text);"
+                                               aria-label="View full size">
                                                 <i class="fas fa-expand"></i>
                                             </a>
                                             <a href="?delete_image=<?= $media['id'] ?>&id=<?= $programme_id ?>" 
                                                class="btn btn-danger btn-sm"
-                                               onclick="return confirm('Delete this image?')">
+                                               onclick="return confirm('Are you sure you want to delete this image?')"
+                                               aria-label="Delete image">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>
@@ -755,9 +905,10 @@ if (isset($_GET['delete_image'])) {
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
-                        <div style="text-align: center; padding: 2rem; color: var(--text-light);">
-                            <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                            <p>No images uploaded yet</p>
+                        <div class="empty-state">
+                            <i class="fas fa-images"></i>
+                            <h3>No Images Yet</h3>
+                            <p>Upload images to showcase your programme</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -774,47 +925,44 @@ if (isset($_GET['delete_image'])) {
             });
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
             });
 
             // Show selected tab
             document.getElementById(tabName + '-tab').classList.add('active');
             event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
         }
 
         // Statistics functionality
         let statisticCount = <?= count($statistics) ?>;
         const iconOptions = [
-            'fas fa-users', 'fas fa-map-marker-alt', 'fas fa-chart-line', 'fas fa-tasks',
-            'fas fa-dollar-sign', 'fas fa-graduation-cap', 'fas fa-heart', 'fas fa-home',
-            'fas fa-school', 'fas fa-hand-holding-heart', 'fas fa-briefcase', 'fas fa-seedling'
+            'fas fa-users', 'fas fa-map-marker-alt', 'fas fa-chart-line', 
+            'fas fa-graduation-cap', 'fas fa-heart', 'fas fa-home'
         ];
 
-        function addStatistic() {
+        function addStatistic(name = '', value = '', icon = 'fas fa-chart-line') {
             const container = document.getElementById('statistics-container');
             const id = statisticCount++;
             
             const statisticHTML = `
-                <div class="form-row" style="margin-bottom: 1rem; align-items: end;">
-                    <div class="form-group">
-                        <input type="text" name="statistics[${id}][name]" 
-                               class="form-input" placeholder="Statistic name" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" name="statistics[${id}][value]" 
-                               class="form-input" placeholder="Statistic value" required>
-                    </div>
-                    <div class="form-group">
+                <div class="statistic-item" data-id="${id}">
+                    <input type="text" name="statistics[${id}][name]" 
+                           class="form-input" placeholder="Statistic name" 
+                           value="${name}" required>
+                    <input type="text" name="statistics[${id}][value]" 
+                           class="form-input" placeholder="Statistic value" 
+                           value="${value}" required>
+                    <div class="statistic-actions">
                         <select name="statistics[${id}][icon]" class="form-select">
                             ${iconOptions.map(iconOption => `
-                                <option value="${iconOption}">
-                                    ${iconOption.replace('fas fa-', '').replace(/-/g, ' ')}
+                                <option value="${iconOption}" ${icon === iconOption ? 'selected' : ''}>
+                                    ${iconOption.replace('fas fa-', '')}
                                 </option>
                             `).join('')}
                         </select>
-                    </div>
-                    <div>
-                        <input type="hidden" name="statistics[${id}][order]" value="0">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.form-row').remove()">
+                        <input type="hidden" name="statistics[${id}][order]" value="${id}">
+                        <button type="button" class="btn btn-danger" onclick="removeStatistic(${id})" aria-label="Remove statistic">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -822,7 +970,65 @@ if (isset($_GET['delete_image'])) {
             `;
             
             container.insertAdjacentHTML('beforeend', statisticHTML);
+            
+            // Announce to screen readers
+            const announcement = document.createElement('div');
+            announcement.className = 'sr-only';
+            announcement.textContent = 'New statistic added';
+            container.appendChild(announcement);
+            setTimeout(() => announcement.remove(), 1000);
         }
+
+        function removeStatistic(id) {
+            const element = document.querySelector(`.statistic-item[data-id="${id}"]`);
+            if (element) {
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(-10px)';
+                setTimeout(() => element.remove(), 300);
+            }
+        }
+
+        // Enhanced form handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add loading states to buttons
+            const buttons = document.querySelectorAll('button[type="submit"]');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.add('loading');
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                });
+            });
+
+            // Enhanced touch interactions for mobile
+            if ('ontouchstart' in window) {
+                document.body.classList.add('touch-device');
+            }
+
+            // Auto-add empty statistic if none exist
+            <?php if(empty($statistics)): ?>
+                addStatistic('Lives Impacted', '1500+', 'fas fa-users');
+                addStatistic('Success Rate', '95%', 'fas fa-chart-line');
+            <?php endif; ?>
+        });
+
+        // Keyboard navigation for tabs
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                const tabs = Array.from(document.querySelectorAll('.tab'));
+                const currentTab = document.querySelector('.tab.active');
+                const currentIndex = tabs.indexOf(currentTab);
+                
+                let nextIndex;
+                if (e.key === 'ArrowRight') {
+                    nextIndex = (currentIndex + 1) % tabs.length;
+                } else {
+                    nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+                }
+                
+                tabs[nextIndex].click();
+                tabs[nextIndex].focus();
+            }
+        });
     </script>
 </body>
 </html>

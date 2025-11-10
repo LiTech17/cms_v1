@@ -2,7 +2,7 @@
 require_once "../config/database.php";
 require_once "../core/auth.php";
 require_once "../core/upload.php";
-checkLogin();
+checkAdminLogin();
 
 // Handle programme creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_programme'])) {
